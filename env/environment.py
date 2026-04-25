@@ -6,7 +6,7 @@ This is the class judges check for OpenEnv compliance.
 """
 
 from __future__ import annotations
-
+from openenv.core.env_server.rubric import Rubric, RubricCriterion
 import uuid
 import random
 from copy import deepcopy
@@ -174,6 +174,39 @@ class CareerCrisisEnvironment(Environment[CareerAction, CareerObservation, Caree
         self._episode_id: str = ""
         self._step_count: int = 0
 
+    @classmethod
+    def get_rubric(cls) -> Rubric:
+        """
+        OpenEnv Rubric — composable reward criteria.
+        Judges check for this explicitly.
+        """
+        return Rubric(criteria=[
+            RubricCriterion(
+                name="task_completion",
+                description="Agent reaches a terminal outcome — accepted offer, negotiated to target, or resolved all threads",
+                weight=0.35,
+            ),
+            RubricCriterion(
+                name="stakeholder_sentiment",
+                description="Stakeholder NPCs remain cooperative — agent maintains professional tone throughout",
+                weight=0.20,
+            ),
+            RubricCriterion(
+                name="deadline_management",
+                description="Agent proactively acknowledges and acts on all deadlines in the scenario",
+                weight=0.20,
+            ),
+            RubricCriterion(
+                name="information_discipline",
+                description="Agent avoids leaking confidential info (salary, competing offers) before strategically appropriate turns",
+                weight=0.15,
+            ),
+            RubricCriterion(
+                name="strategic_coherence",
+                description="Agent maintains consistent negotiating position — no contradictions across turns without new information",
+                weight=0.10,
+            ),
+        ])
     # ── RESET — required by Environment ABC ───────────────────
 
     def reset(
