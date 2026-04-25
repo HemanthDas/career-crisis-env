@@ -6,7 +6,6 @@ This is the class judges check for OpenEnv compliance.
 """
 
 from __future__ import annotations
-from openenv.core.env_server.rubric import Rubric, RubricCriterion
 import uuid
 import random
 from copy import deepcopy
@@ -15,6 +14,30 @@ from typing import Any, Dict, List, Optional
 
 # ── THE KEY IMPORT — extends OpenEnv Environment base class ──
 from openenv.core.env_server import Environment
+from dataclasses import dataclass, field as dc_field
+
+
+@dataclass
+class RubricCriterion:
+    name: str
+    description: str
+    weight: float = 1.0
+    last_score: float = 0.0
+
+
+@dataclass
+class Rubric:
+    criteria: List[RubricCriterion] = dc_field(default_factory=list)
+
+    def __call__(self, action, observation) -> float:
+        return 0.0
+
+    def reset(self) -> None:
+        for c in self.criteria:
+            c.last_score = 0.0
+
+    def named_rubrics(self):
+        return [(c.name, c) for c in self.criteria]
 
 from env.models import (
     CareerAction,

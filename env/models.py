@@ -5,7 +5,7 @@ Properly extends OpenEnv base classes from openenv.core.env_server
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
-from pydantic import Field
+from pydantic import Field, ConfigDict
 from enum import Enum
 
 # ── OpenEnv base classes (the key imports judges check) ──
@@ -78,7 +78,7 @@ class CareerAction(Action):
         description="Agent's message/negotiation response",
     )
 
-    model_config = {"extra": "allow"}
+    model_config = ConfigDict(extra="allow")
 
 
 # ─────────────────────────────────────────
@@ -104,7 +104,7 @@ class CareerObservation(Observation):
     hints: List[str] = Field(default_factory=list)
     reward_breakdown: Dict[str, float] = Field(default_factory=dict)
 
-    model_config = {"extra": "allow"}
+    model_config = ConfigDict(extra="allow")
 
 
 # ─────────────────────────────────────────
@@ -128,7 +128,7 @@ class CareerState(State):
     active_offers: List[Dict[str, Any]] = Field(default_factory=list)
     outcome_state: Dict[str, Any] = Field(default_factory=dict)
 
-    model_config = {"extra": "allow"}
+    model_config = ConfigDict(extra="allow")
 
 
 # ─────────────────────────────────────────
