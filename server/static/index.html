@@ -910,14 +910,20 @@ async function resetEpisode() {
 
 async function doStep(response) {
   if (state.done) return;
-
+  if (!response || !response.trim()) return; 
   try {
     const r = await fetch(`${ENV_URL}/step`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({action: {response, metadata: {}}}),
     });
-    if (!r.ok) throw new Error(`Step failed: ${r.status}`);
+    if (r.status === 400) {
+      addSystemMessage('⚠️ Session expired — auto-resetting...');
+      await resetEpisode();
+      return;
+    }
+
+  if (!r.ok) throw new Error(`Step failed: ${r.status}`);
     const data = await r.json();
 
     const obs    = data.observation || data;
@@ -978,8 +984,19 @@ async function doStep(response) {
 
 function scheduleNextStep() {
   if (state.playTimer) clearTimeout(state.playTimer);
-  state.playTimer = setTimeout(() => {
+  state.playTimer = setTimeout(async () => {
     if (!state.playing || state.done) return;
+    try {
+      const check = await fetch(`${ENV_URL}/state`);
+      const s = await check.json();
+      if (s.done || !s.episode_id) {
+        addSystemMessage('Episode ended — reset to continue.');
+        state.playing = false;
+        document.getElementById('btn-play').textContent = '▶ Play';
+        return;
+      }
+    } catch(e) { }
+
     const responses = AUTO_RESPONSES[state.selectedLevel] || AUTO_RESPONSES[1];
     const idx = state.autoResponseIdx % responses.length;
     state.autoResponseIdx++;
