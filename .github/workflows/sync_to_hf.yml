@@ -1,0 +1,21 @@
+name: Sync to HuggingFace Space
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add space https://HemanthDas:$HF_TOKEN@huggingface.co/spaces/HemanthDas/career-crisis-env
+          git push space master:main --force
