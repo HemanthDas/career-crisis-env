@@ -26,16 +26,14 @@ from env.models import CareerAction, CareerObservation
 # CREATE APP VIA OPENENV
 # ─────────────────────────────────────────
 
-env = CareerCrisisEnvironment()
-
 # This single call creates ALL required OpenEnv endpoints
 # including WebSocket /ws used by TRL training loop
 app = create_fastapi_app(
-    env,
+    CareerCrisisEnvironment,
     CareerAction,
     CareerObservation,
 )
-
+env = CareerCrisisEnvironment()
 # ─────────────────────────────────────────
 # ADD EXTRA ENDPOINTS ON TOP
 # (leaderboard, history — not in OpenEnv spec but nice to have)
