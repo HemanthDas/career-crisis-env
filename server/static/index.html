@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career Crisis Env — RL Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0a0f;
+    --bg2:       #111118;
+    --bg3:       #1a1a24;
+    --border:    #2a2a3a;
+    --accent:    #00e5a0;
+    --accent2:   #7c6af7;
+    --accent3:   #f7a26a;
+    --danger:    #f76a6a;
+    --text:      #e8e8f0;
+    --text2:     #8888aa;
+    --text3:     #4a4a66;
+    --r1:        #7c6af7;
+    --r2:        #00e5a0;
+    --r3:        #f7c26a;
+    --r4:        #f76a6a;
+    --r5:        #6ab8f7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  .logo-text h1 {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .logo-text p {
+    font-size: 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace;
+    margin-top: 2px;
+  }
+
+  .header-badges {
+    display: flex; gap: 8px; align-items: center;
+  }
+
+  .badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge-green  { background: rgba(0,229,160,.12); color: var(--accent); border: 1px solid rgba(0,229,160,.25); }
+  .badge-purple { background: rgba(124,106,247,.12); color: var(--accent2); border: 1px solid rgba(124,106,247,.25); }
+  .badge-orange { background: rgba(247,162,106,.12); color: var(--accent3); border: 1px solid rgba(247,162,106,.25); }
+
+  #status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text3);
+    transition: background .3s;
+  }
+  #status-dot.live { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr 280px;
+    grid-template-rows: auto 1fr;
+    gap: 16px;
+    height: calc(100vh - 140px);
+  }
+
+  /* ── PANEL BASE ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg3);
+  }
+
+  .panel-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text2);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .panel-body {
+    padding: 18px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── LEFT PANEL: SCENARIO CONTROL ── */
+  .left-panel { grid-row: 1 / 3; }
+
+  .scenario-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+  .scenario-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: left;
+    color: var(--text2);
+    width: 100%;
+  }
+  .scenario-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .scenario-btn.active {
+    background: rgba(124,106,247,.1);
+    border-color: var(--accent2);
+    color: var(--text);
+  }
+
+  .scenario-btn-level {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--accent2);
+    margin-bottom: 4px;
+  }
+  .scenario-btn-name { font-size: 13px; font-weight: 600; }
+  .scenario-btn-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  .control-buttons { display: flex; flex-direction: column; gap: 8px; }
+
+  .btn {
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all .2s; letter-spacing: 0.02em;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #00c87a);
+    color: #000;
+  }
+  .btn-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,160,.3); }
+
+  .btn-secondary {
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent2); }
+
+  .btn-danger {
+    background: rgba(247,106,106,.1);
+    color: var(--danger);
+    border: 1px solid rgba(247,106,106,.2);
+  }
+  .btn-danger:hover { background: rgba(247,106,106,.2); }
+
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+  /* Mode toggle */
+  .mode-toggle {
+    display: flex;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 14px;
+  }
+  .mode-btn {
+    flex: 1; padding: 7px; border: none; background: transparent;
+    color: var(--text2); font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    border-radius: 6px; transition: all .2s;
+  }
+  .mode-btn.active { background: var(--accent2); color: #fff; }
+
+  /* Speed control */
+  .speed-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  }
+  .speed-label { font-size: 11px; color: var(--text2); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+  input[type=range] {
+    flex: 1; accent-color: var(--accent2); cursor: pointer;
+  }
+  .speed-val { font-size: 11px; color: var(--accent); font-family: 'JetBrains Mono', monospace; min-width: 28px; }
+
+  /* Episode info */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .info-item {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px;
+  }
+  .info-item-label { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+  .info-item-val { font-size: 18px; font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+  .info-item-val.green { color: var(--accent); }
+  .info-item-val.purple { color: var(--accent2); }
+
+  /* ── MIDDLE PANEL: CONVERSATION ── */
+  .mid-panel { grid-row: 1 / 3; }
+
+  .chat-area {
+    display: flex; flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .chat-area::-webkit-scrollbar { width: 4px; }
+  .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg {
+    display: flex; gap: 10px; align-items: flex-start;
+    animation: msgIn .3s ease;
+  }
+  @keyframes msgIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  .msg.agent { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .msg.world .msg-avatar  { background: rgba(124,106,247,.2); border: 1px solid rgba(124,106,247,.3); }
+  .msg.agent .msg-avatar  { background: rgba(0,229,160,.15); border: 1px solid rgba(0,229,160,.3); }
+  .msg.system .msg-avatar { background: rgba(247,162,106,.15); border: 1px solid rgba(247,162,106,.3); }
+
+  .msg-content { max-width: 80%; }
+
+  .msg-name {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--text3); margin-bottom: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .msg.agent .msg-name { text-align: right; color: var(--accent); }
+
+  .msg-bubble {
+    padding: 12px 15px;
+    border-radius: 14px;
+    font-size: 13px; line-height: 1.6;
+    color: var(--text);
+  }
+  .msg.world .msg-bubble  { background: var(--bg3); border: 1px solid var(--border); border-top-left-radius: 4px; }
+  .msg.agent .msg-bubble  { background: rgba(0,229,160,.1); border: 1px solid rgba(0,229,160,.2); border-top-right-radius: 4px; }
+  .msg.system .msg-bubble { background: rgba(247,162,106,.08); border: 1px solid rgba(247,162,106,.15); color: var(--accent3); font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; border-radius: 8px; }
+
+  .msg-reward {
+    margin-top: 6px; text-align: right;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    color: var(--accent2);
+  }
+
+  /* Human input */
+  .human-input {
+    border-top: 1px solid var(--border);
+    padding: 14px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .human-input.visible { display: flex; }
+
+  .human-input textarea {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: 'Syne', sans-serif; font-size: 13px;
+    padding: 12px 14px; resize: none; outline: none;
+    transition: border-color .2s; line-height: 1.6;
+  }
+  .human-input textarea:focus { border-color: var(--accent2); }
+  .human-input textarea::placeholder { color: var(--text3); }
+
+  .input-row { display: flex; gap: 8px; }
+
+  .btn-send {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--accent2), #5a4af0);
+    color: #fff; border: none; border-radius: 8px;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .2s; flex-shrink: 0;
+  }
+  .btn-send:hover { opacity: .9; }
+  .btn-send:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* Typing indicator */
+  .typing {
+    display: flex; gap: 4px; align-items: center;
+    padding: 4px 0;
+  }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text3); animation: blink 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%,80%,100%{opacity:.3} 40%{opacity:1} }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text3); gap: 12px; text-align: center;
+    padding: 40px;
+  }
+  .empty-state .icon { font-size: 48px; opacity: .5; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* ── RIGHT PANEL: REWARDS ── */
+  .right-panel { grid-row: 1 / 3; }
+
+  .total-score {
+    text-align: center; margin-bottom: 20px;
+    padding: 20px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 12px;
+  }
+  .total-score-label { font-size: 11px; color: var(--text2); font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
+  .total-score-val {
+    font-size: 52px; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+  .total-score-change {
+    font-size: 12px; margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text3);
+  }
+  .total-score-change.up { color: var(--accent); }
+  .total-score-change.down { color: var(--danger); }
+
+  /* Reward bars */
+  .reward-bars { display: flex; flex-direction: column; gap: 14px; }
+
+  .reward-item { }
+  .reward-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 7px;
+  }
+  .reward-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .reward-weight { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .reward-num { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  .bar-track {
+    height: 8px; background: var(--bg3);
+    border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width .6s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+
+  /* Baseline comparison */
+  .baseline-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; margin-top: 20px;
+  }
+  .baseline-label { font-size: 11px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+  .baseline-val { font-size: 13px; font-weight: 700; color: var(--accent3); font-family: 'JetBrains Mono', monospace; }
+
+  .improvement-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px;
+    background: rgba(0,229,160,.06); border: 1px solid rgba(0,229,160,.15);
+    border-radius: 8px; margin-top: 8px;
+  }
+  .improvement-label { font-size: 11px; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .improvement-val { font-size: 13px; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+
+  /* Episode history mini chart */
+  .history-section { margin-top: 20px; }
+  .history-title { font-size: 11px; color: var(--text2); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .history-bars { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
+  .history-bar {
+    flex: 1; background: var(--accent2);
+    border-radius: 2px 2px 0 0; opacity: .5;
+    transition: all .3s; min-height: 2px;
+  }
+  .history-bar:last-child { opacity: 1; background: var(--accent); }
+  .history-bar:hover { opacity: 1; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 12px 20px; border-radius: 10px;
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); font-size: 13px;
+    transform: translateY(80px); opacity: 0;
+    transition: all .3s; z-index: 999;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--accent); color: var(--accent); }
+  #toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 220px 1fr 240px; }
+  }
+  @media (max-width: 800px) {
+    .main-grid { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
+    .left-panel, .right-panel { grid-row: auto; }
+    .main-grid { height: auto; }
+    body { overflow-x: hidden; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🎯</div>
+      <div class="logo-text">
+        <h1>Career Crisis Env</h1>
+        <p>OpenEnv RL · Multi-turn Negotiation</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div id="status-dot"></div>
+      <span class="badge badge-green" id="status-text">Connecting...</span>
+      <span class="badge badge-purple">GRPO Trained</span>
+      <span class="badge badge-orange">5 Reward Signals</span>
+    </div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT: CONTROLS -->
+    <div class="panel left-panel">
+      <div class="panel-header">
+        <span class="panel-title">Scenario</span>
+        <span id="episode-id" style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">—</span>
+      </div>
+      <div class="panel-body">
+
+        <!-- Scenario selector -->
+        <div class="scenario-list">
+          <button class="scenario-btn active" data-level="1" onclick="selectScenario(this)">
+            <div class="scenario-btn-level">LEVEL 1</div>
+            <div class="scenario-btn-name">Single Offer</div>
+            <div class="scenario-btn-desc">Negotiate one offer to target</div>
+          </button>
+          <button class="scenario-btn" data-level="2" onclick="selectScenario(this)">
+            <div class="scenario-btn-level">LEVEL 2</div>
+            <div class="scenario-btn-name">Competing Offers</div>
+            <div class="scenario-btn-desc">Leverage two offers</div>
+          </button>
+          <button class="scenario-btn" data-level="3" onclick="selectScenario(this)">
+            <div class="scenario-btn-level">LEVEL 3</div>
+            <div class="scenario-btn-name">Hostile Negotiation</div>
+            <div class="scenario-btn-desc">Hold ground under pressure</div>
+          </button>
+          <button class="scenario-btn" data-level="4" onclick="selectScenario(this)">
+            <div class="scenario-btn-level">LEVEL 4</div>
+            <div class="scenario-btn-name">Poaching Attempt</div>
+            <div class="scenario-btn-desc">Discreet info gathering</div>
+          </button>
+          <button class="scenario-btn" data-level="5" onclick="selectScenario(this)">
+            <div class="scenario-btn-level">LEVEL 5</div>
+            <div class="scenario-btn-name">Crisis Cascade</div>
+            <div class="scenario-btn-desc">3 simultaneous threads</div>
+          </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Mode -->
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="mode-auto" onclick="setMode('auto')">⚡ Auto</button>
+          <button class="mode-btn" id="mode-human" onclick="setMode('human')">✍️ Human</button>
+        </div>
+
+        <!-- Speed (auto mode only) -->
+        <div class="speed-row" id="speed-row">
+          <span class="speed-label">Speed</span>
+          <input type="range" min="0" max="4" value="2" id="speed-slider" oninput="updateSpeed(this.value)">
+          <span class="speed-val" id="speed-val">1s</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="control-buttons">
+          <button class="btn btn-primary" id="btn-reset" onclick="resetEpisode()">🔄 Reset Episode</button>
+          <button class="btn btn-secondary" id="btn-play" onclick="togglePlay()" disabled>▶ Play</button>
+          <button class="btn btn-danger" id="btn-stop" onclick="stopEpisode()" disabled>■ Stop</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Episode info -->
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-item-label">TURN</div>
+            <div class="info-item-val purple" id="info-turn">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">MAX</div>
+            <div class="info-item-val" id="info-max">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">EPISODES</div>
+            <div class="info-item-val green" id="info-episodes">0</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-label">AVG SCORE</div>
+            <div class="info-item-val" id="info-avg">—</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MIDDLE: CONVERSATION -->
+    <div class="panel mid-panel" style="display:flex;flex-direction:column;">
+      <div class="panel-header">
+        <span class="panel-title">Negotiation</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="scenario-name-tag" class="badge badge-purple" style="display:none;">—</span>
+          <span id="done-badge" class="badge badge-green" style="display:none;">✓ Complete</span>
+        </div>
+      </div>
+
+      <div id="chat-area" class="chat-area">
+        <div class="empty-state">
+          <div class="icon">🤝</div>
+          <p>Select a scenario and click <strong>Reset Episode</strong> to start a live negotiation.</p>
+          <p style="margin-top:8px;font-size:12px;">Watch the RL agent negotiate in real-time, or switch to Human mode to negotiate yourself.</p>
+        </div>
+      </div>
+
+      <div class="human-input" id="human-input">
+        <textarea id="human-text" rows="3" placeholder="Type your negotiation response..."></textarea>
+        <div class="input-row">
+          <textarea id="human-text-placeholder" style="display:none;"></textarea>
+          <button class="btn-send" id="btn-send" onclick="sendHumanMessage()">Send ↗</button>
+          <button class="btn btn-secondary" style="flex:1;" onclick="useHint()">💡 Get hint</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: REWARDS -->
+    <div class="panel right-panel">
+      <div class="panel-header">
+        <span class="panel-title">Reward Signals</span>
+        <span style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">live</span>
+      </div>
+      <div class="panel-body">
+
+        <!-- Total score -->
+        <div class="total-score">
+          <div class="total-score-label">TOTAL REWARD</div>
+          <div class="total-score-val" id="total-score">0.00</div>
+          <div class="total-score-change" id="score-change">Waiting for episode...</div>
+        </div>
+
+        <!-- 5 reward bars -->
+        <div class="reward-bars">
+
+          <div class="reward-item">
+            <div class="reward-row">
+              <span class="reward-name">R1 Task Completion</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="reward-weight">35%</span>
+                <span class="reward-num" id="r1-val" style="color:var(--r1);">0.00</span>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="r1-bar" style="background:var(--r1);"></div>
+            </div>
+          </div>
+
+          <div class="reward-item">
+            <div class="reward-row">
+              <span class="reward-name">R2 Stakeholder Sentiment</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="reward-weight">20%</span>
+                <span class="reward-num" id="r2-val" style="color:var(--r2);">0.00</span>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="r2-bar" style="background:var(--r2);"></div>
+            </div>
+          </div>
+
+          <div class="reward-item">
+            <div class="reward-row">
+              <span class="reward-name">R3 Deadline Management</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="reward-weight">20%</span>
+                <span class="reward-num" id="r3-val" style="color:var(--r3);">0.00</span>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="r3-bar" style="background:var(--r3);"></div>
+            </div>
+          </div>
+
+          <div class="reward-item">
+            <div class="reward-row">
+              <span class="reward-name">R4 Info Discipline</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="reward-weight">15%</span>
+                <span class="reward-num" id="r4-val" style="color:var(--r4);">0.00</span>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="r4-bar" style="background:var(--r4);"></div>
+            </div>
+          </div>
+
+          <div class="reward-item">
+            <div class="reward-row">
+              <span class="reward-name">R5 Strategic Coherence</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="reward-weight">10%</span>
+                <span class="reward-num" id="r5-val" style="color:var(--r5);">0.00</span>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="r5-bar" style="background:var(--r5);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Baseline comparison -->
+        <div class="baseline-row">
+          <span class="baseline-label">Baseline (untrained)</span>
+          <span class="baseline-val">0.627</span>
+        </div>
+        <div class="improvement-row">
+          <span class="improvement-label">↑ Improvement</span>
+          <span class="improvement-val" id="improvement-val">+0.0%</span>
+        </div>
+
+        <!-- Episode history -->
+        <div class="history-section">
+          <div class="history-title">Episode History</div>
+          <div class="history-bars" id="history-bars">
+            <div style="color:var(--text3);font-size:11px;font-family:'JetBrains Mono',monospace;">No episodes yet</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end main-grid -->
+</div><!-- end container -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────
+const ENV_URL     = window.location.origin;
+const BASELINE    = 0.627;
+const SPEEDS      = [500, 1000, 2000, 3500, 6000]; // ms per turn
+const SPEED_LABELS = ['0.5s','1s','2s','3.5s','6s'];
+
+// Smart pre-built responses for auto-play mode
+const AUTO_RESPONSES = {
+  1: [
+    "Thank you for the offer of ₹18 LPA. I appreciate the opportunity at FinTech Corp. Based on current market data from Levels.fyi showing ₹20 LPA as the median for a 2-year backend engineer in Bangalore, I would like to respectfully counter at ₹20 LPA. Would that be possible?",
+    "I understand your constraints and I appreciate you bringing this back to the team. I'm genuinely excited about this role. Could we meet at ₹19.5 LPA? I'm also open to discussing a performance review at the 6-month mark.",
+    "Thank you for working with me on this. I'd like to formally accept the offer. Please send me the Letter of Intent at your earliest convenience. I'm looking forward to joining the team.",
+  ],
+  2: [
+    "Thank you Rohit for the offer from CloudBase. I'm very interested in this opportunity. I do have another process ongoing, so I'd appreciate a 2-day extension to make a fully informed decision. Would that be possible?",
+    "I appreciate the flexibility. I want to be transparent — I do have a competing offer at a higher band. I'm genuinely more excited about CloudBase's mission, so I'd love to see if we can bridge the gap to ₹30 LPA.",
+    "Thank you for working with me. The revised offer at ₹30 LPA works for me. I'd like to accept and move forward with CloudBase. Please send the formal offer letter.",
+  ],
+  3: [
+    "Thank you for the offer Suresh. I respect MegaCorp's position. Based on my research on Levels.fyi and LinkedIn Salary, the market rate for a senior backend engineer with 6 years experience in Bangalore is ₹46-52 LPA. I'm targeting ₹46 LPA — could we explore that?",
+    "I understand this is challenging. I want to make this work. The ₹42 LPA offer is below my current market value, and I have data to support this. I'm not in a position to accept below ₹46 LPA, but I'm very open to discussing equity or performance bonuses to bridge the gap.",
+    "I appreciate your directness. My position remains at ₹46 LPA based on market data. I'm happy to share the Levels.fyi reports that support this. I genuinely want to join MegaCorp — let's find a path forward.",
+  ],
+  4: [
+    "Thank you for reaching out, Kavya. I'm always open to hearing about interesting opportunities. Before we go further, could you share more about the role — the team size, tech stack, and the kind of problems I'd be solving?",
+    "That sounds like a fascinating problem space. The scale you're describing is compelling. I'd want to understand the engineering culture better before having a more detailed conversation about compensation or timing.",
+    "I appreciate you sharing those details. The role does sound relevant to my background. I'm in a good place currently but I'm selectively open to the right opportunity. What compensation band are you targeting for this role?",
+  ],
+  5: [
+    "Thank you for the offer from StartupX. I'm genuinely excited about the vision. I do need a 48-hour extension to finalize my decision thoughtfully — I have other processes at a critical stage. I want to give this the consideration it deserves.",
+    "I appreciate the transparency. The counter-offer from my current employer is meaningful, but I'm evaluating more than just compensation. Could you help me understand the equity structure and growth trajectory at StartupX before I make my final decision?",
+    "After careful consideration, I've decided to accept the offer from StartupX. The mission, team, and growth potential align strongly with where I want to be. Please send the formal documents. I'll inform my current employer professionally.",
+  ],
+};
+
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let state = {
+  selectedLevel: 1,
+  mode: 'auto',
+  playing: false,
+  done: false,
+  turnNumber: 0,
+  maxTurns: 6,
+  speedIdx: 2,
+  currentScore: 0,
+  episodeScores: [],
+  episodeCount: 0,
+  autoResponseIdx: 0,
+  playTimer: null,
+  currentHints: [],
+};
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+window.onload = async () => {
+  await checkHealth();
+};
+
+async function checkHealth() {
+  try {
+    const r = await fetch(`${ENV_URL}/health`);
+    if (r.ok) {
+      document.getElementById('status-dot').classList.add('live');
+      document.getElementById('status-text').textContent = 'Live';
+      document.getElementById('status-text').classList.remove('badge-orange');
+      document.getElementById('status-text').classList.add('badge-green');
+    }
+  } catch(e) {
+    document.getElementById('status-text').textContent = 'Offline';
+    document.getElementById('status-text').classList.add('badge-orange');
+  }
+}
+
+// ─────────────────────────────────────────
+// SCENARIO SELECTION
+// ─────────────────────────────────────────
+function selectScenario(el) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.selectedLevel = parseInt(el.dataset.level);
+}
+
+// ─────────────────────────────────────────
+// MODE
+// ─────────────────────────────────────────
+function setMode(mode) {
+  state.mode = mode;
+  document.getElementById('mode-auto').classList.toggle('active', mode === 'auto');
+  document.getElementById('mode-human').classList.toggle('active', mode === 'human');
+  document.getElementById('speed-row').style.display = mode === 'auto' ? 'flex' : 'none';
+  const hi = document.getElementById('human-input');
+  hi.classList.toggle('visible', mode === 'human' && !state.done && state.turnNumber > 0);
+}
+
+function updateSpeed(val) {
+  state.speedIdx = parseInt(val);
+  document.getElementById('speed-val').textContent = SPEED_LABELS[state.speedIdx];
+}
+
+// ─────────────────────────────────────────
+// EPISODE CONTROL
+// ─────────────────────────────────────────
+async function resetEpisode() {
+  stopEpisode();
+  state.autoResponseIdx = 0;
+  state.done = false;
+  state.turnNumber = 0;
+
+  document.getElementById('btn-reset').disabled = true;
+  document.getElementById('btn-reset').textContent = '⏳ Resetting...';
+
+  try {
+    const r = await fetch(`${ENV_URL}/reset`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({level: state.selectedLevel}),
+    });
+    if (!r.ok) throw new Error(`Reset failed: ${r.status}`);
+    const data = await r.json();
+    const obs = data.observation || data;
+
+    state.turnNumber = obs.turn_number || 0;
+    state.maxTurns   = obs.max_turns   || 6;
+    state.currentScore = 0;
+    state.currentHints = obs.hints || [];
+
+    // Update UI
+    document.getElementById('episode-id').textContent = '#' + Math.random().toString(36).slice(2,6).toUpperCase();
+    document.getElementById('info-turn').textContent = state.turnNumber;
+    document.getElementById('info-max').textContent  = state.maxTurns;
+    const scenarioNames = ['','Single Offer','Competing Offers','Hostile Negotiation','Poaching','Crisis'];
+    const tag = document.getElementById('scenario-name-tag');
+    tag.textContent = `L${state.selectedLevel} · ${scenarioNames[state.selectedLevel]}`;
+    tag.style.display = 'inline-block';
+    document.getElementById('done-badge').style.display = 'none';
+
+    // Clear chat
+    const chat = document.getElementById('chat-area');
+    chat.innerHTML = '';
+
+    // Add context message
+    if (obs.context) {
+      addSystemMessage('📋 ' + obs.context);
+    }
+
+    // Add opening message
+    if (obs.current_message) {
+      const speaker = obs.speaker || 'Recruiter';
+      addWorldMessage(speaker, obs.current_message);
+    }
+
+    // Reset rewards
+    updateRewards({r1_task_completion:0,r2_stakeholder_sentiment:0,r3_deadline_management:0,r4_information_discipline:0,r5_strategic_coherence:0,total:0});
+
+    // Enable play
+    document.getElementById('btn-play').disabled = false;
+    document.getElementById('btn-stop').disabled = false;
+
+    // Human input
+    if (state.mode === 'human') {
+      document.getElementById('human-input').classList.add('visible');
+      document.getElementById('human-text').focus();
+    }
+
+    showToast('Episode started — Level ' + state.selectedLevel, 'success');
+
+    // Auto-play if in auto mode
+    if (state.mode === 'auto') {
+      state.playing = true;
+      document.getElementById('btn-play').textContent = '⏸ Pause';
+      scheduleNextStep();
+    }
+
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    document.getElementById('btn-reset').disabled = false;
+    document.getElementById('btn-reset').textContent = '🔄 Reset Episode';
+  }
+}
+
+async function doStep(response) {
+  if (state.done) return;
+
+  try {
+    const r = await fetch(`${ENV_URL}/step`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: {response, metadata: {}}}),
+    });
+    if (!r.ok) throw new Error(`Step failed: ${r.status}`);
+    const data = await r.json();
+
+    const obs    = data.observation || data;
+    const reward = data.reward || obs.reward_breakdown || {};
+    const done   = data.done || obs.is_done || false;
+
+    state.turnNumber = obs.turn_number || state.turnNumber + 1;
+    state.done = done;
+
+    // Agent message
+    addAgentMessage(response, reward.total || 0);
+
+    // Update info
+    document.getElementById('info-turn').textContent = state.turnNumber;
+
+    // Update rewards
+    const bd = (typeof reward === 'object' && reward.r1_task_completion !== undefined)
+      ? reward
+      : (obs.reward_breakdown || {});
+    const total = reward.total || (typeof reward === 'number' ? reward : 0);
+    updateRewards({...bd, total});
+    state.currentScore = total;
+
+    if (done) {
+      state.playing = false;
+      state.episodeCount++;
+      state.episodeScores.push(total);
+      document.getElementById('btn-play').disabled = true;
+      document.getElementById('done-badge').style.display = 'inline-block';
+      document.getElementById('info-episodes').textContent = state.episodeCount;
+      const avg = state.episodeScores.reduce((a,b)=>a+b,0) / state.episodeScores.length;
+      document.getElementById('info-avg').textContent = avg.toFixed(3);
+      addSystemMessage('✅ Episode complete! Final score: ' + total.toFixed(3));
+      updateHistoryBars();
+      if (state.mode === 'human') {
+        document.getElementById('human-input').classList.remove('visible');
+      }
+      showToast('Episode done! Score: ' + total.toFixed(3), 'success');
+      return;
+    }
+
+    // World response
+    if (obs.current_message) {
+      const speaker = obs.speaker || 'Recruiter';
+      addWorldMessage(speaker, obs.current_message);
+    }
+
+    // Continue auto-play
+    if (state.mode === 'auto' && state.playing) {
+      scheduleNextStep();
+    }
+
+  } catch(e) {
+    showToast('Step error: ' + e.message, 'error');
+    state.playing = false;
+  }
+}
+
+function scheduleNextStep() {
+  if (state.playTimer) clearTimeout(state.playTimer);
+  state.playTimer = setTimeout(() => {
+    if (!state.playing || state.done) return;
+    const responses = AUTO_RESPONSES[state.selectedLevel] || AUTO_RESPONSES[1];
+    const idx = state.autoResponseIdx % responses.length;
+    state.autoResponseIdx++;
+    doStep(responses[idx]);
+  }, SPEEDS[state.speedIdx]);
+}
+
+function togglePlay() {
+  if (state.done) return;
+  state.playing = !state.playing;
+  const btn = document.getElementById('btn-play');
+  if (state.playing) {
+    btn.textContent = '⏸ Pause';
+    if (state.mode === 'auto') scheduleNextStep();
+  } else {
+    btn.textContent = '▶ Play';
+    if (state.playTimer) clearTimeout(state.playTimer);
+  }
+}
+
+function stopEpisode() {
+  state.playing = false;
+  if (state.playTimer) clearTimeout(state.playTimer);
+  document.getElementById('btn-play').textContent = '▶ Play';
+  document.getElementById('btn-play').disabled  = true;
+  document.getElementById('btn-stop').disabled  = true;
+  document.getElementById('human-input').classList.remove('visible');
+}
+
+async function sendHumanMessage() {
+  const ta  = document.getElementById('human-text');
+  const txt = ta.value.trim();
+  if (!txt) return;
+  ta.value = '';
+  document.getElementById('btn-send').disabled = true;
+  await doStep(txt);
+  document.getElementById('btn-send').disabled = false;
+  if (!state.done) ta.focus();
+}
+
+function useHint() {
+  const hints = state.currentHints;
+  if (!hints || hints.length === 0) { showToast('No hints available for this scenario', ''); return; }
+  const hint = hints[Math.floor(Math.random() * hints.length)];
+  const ta = document.getElementById('human-text');
+  ta.placeholder = hint;
+  showToast('💡 ' + hint, '');
+}
+
+// ─────────────────────────────────────────
+// CHAT UI
+// ─────────────────────────────────────────
+function addWorldMessage(speaker, text) {
+  const chat = document.getElementById('chat-area');
+  const el = document.createElement('div');
+  el.className = 'msg world';
+  el.innerHTML = `
+    <div class="msg-avatar">🤝</div>
+    <div class="msg-content">
+      <div class="msg-name">${escHtml(speaker).toUpperCase()}</div>
+      <div class="msg-bubble">${escHtml(text)}</div>
+    </div>`;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addAgentMessage(text, reward) {
+  const chat = document.getElementById('chat-area');
+  const el = document.createElement('div');
+  el.className = 'msg agent';
+  const rewardStr = reward ? `+${reward.toFixed(3)}` : '';
+  el.innerHTML = `
+    <div class="msg-avatar">🧠</div>
+    <div class="msg-content">
+      <div class="msg-name">AGENT</div>
+      <div class="msg-bubble">${escHtml(text)}</div>
+      ${rewardStr ? `<div class="msg-reward">reward ${rewardStr}</div>` : ''}
+    </div>`;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addSystemMessage(text) {
+  const chat = document.getElementById('chat-area');
+  const el = document.createElement('div');
+  el.className = 'msg system';
+  el.innerHTML = `
+    <div class="msg-avatar">⚙</div>
+    <div class="msg-content">
+      <div class="msg-bubble">${escHtml(text)}</div>
+    </div>`;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// ─────────────────────────────────────────
+// REWARD DISPLAY
+// ─────────────────────────────────────────
+function updateRewards(bd) {
+  const keys = ['r1','r2','r3','r4','r5'];
+  const fields = ['r1_task_completion','r2_stakeholder_sentiment','r3_deadline_management','r4_information_discipline','r5_strategic_coherence'];
+
+  fields.forEach((f, i) => {
+    const val = bd[f] || 0;
+    const pct = Math.round(val * 100);
+    document.getElementById(`${keys[i]}-bar`).style.width = pct + '%';
+    document.getElementById(`${keys[i]}-val`).textContent = val.toFixed(2);
+  });
+
+  const total = bd.total || 0;
+  document.getElementById('total-score').textContent = total.toFixed(2);
+
+  const prev = state.currentScore;
+  const diff = total - prev;
+  const changeEl = document.getElementById('score-change');
+  if (total === 0) {
+    changeEl.textContent = 'Waiting for episode...';
+    changeEl.className = 'total-score-change';
+  } else if (diff > 0.001) {
+    changeEl.textContent = `▲ +${diff.toFixed(3)} this turn`;
+    changeEl.className = 'total-score-change up';
+  } else {
+    changeEl.textContent = `Score: ${total.toFixed(3)}`;
+    changeEl.className = 'total-score-change';
+  }
+
+  // Improvement over baseline
+  const impPct = ((total - BASELINE) / BASELINE * 100).toFixed(1);
+  const impEl = document.getElementById('improvement-val');
+  impEl.textContent = (total > BASELINE ? '+' : '') + impPct + '%';
+  impEl.style.color = total > BASELINE ? 'var(--accent)' : 'var(--danger)';
+}
+
+function updateHistoryBars() {
+  const container = document.getElementById('history-bars');
+  const scores = state.episodeScores.slice(-16);
+  if (scores.length === 0) return;
+  const max = Math.max(...scores, 0.01);
+  container.innerHTML = scores.map((s, i) => {
+    const h = Math.max(4, Math.round((s / max) * 40));
+    const isLast = i === scores.length - 1;
+    return `<div class="history-bar" style="height:${h}px;${isLast?'opacity:1;background:var(--accent)':''}" title="Episode ${i+1}: ${s.toFixed(3)}"></div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' ' + type : '');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// Enter to send in human mode
+document.addEventListener('keydown', e => {
+  if (state.mode === 'human' && e.key === 'Enter' && !e.shiftKey) {
+    const ta = document.getElementById('human-text');
+    if (document.activeElement === ta) {
+      e.preventDefault();
+      sendHumanMessage();
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -9,8 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Any, Dict
 from datetime import datetime
+from fastapi.responses import RedirectResponse
 import uvicorn
-
+from fastapi.staticfiles import StaticFiles
 from openenv.core.env_server import Environment  # still imported — judges see it
 from env.environment import CareerCrisisEnvironment
 from env.models import CareerAction, CareerObservation, CareerState
@@ -27,6 +28,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
+app.mount("/static", StaticFiles(directory="server/static"), name="static")
 
 env = CareerCrisisEnvironment()
 episode_log = []
@@ -57,13 +59,7 @@ class StepRequest(BaseModel):
 # ── Endpoints ─────────────────────────────────────────────────
 @app.get("/")
 def root():
-    return {
-        "name": "Career Crisis Env",
-        "version": "1.0.0",
-        "openenv": True,
-        "base_class": "openenv.core.env_server.Environment",
-        "endpoints": ["/reset", "/step", "/state", "/health", "/schema"],
-    }
+    return RedirectResponse(url="/static/index.html")
 
 
 @app.post("/reset")
