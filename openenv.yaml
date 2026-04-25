@@ -1,0 +1,107 @@
+name: career-crisis-env
+
+version: 1.0.0
+
+description: >
+  An OpenEnv reinforcement learning environment for multi-turn career negotiation.
+  An AI agent must handle 5 escalating scenarios: single offer acceptance,
+  competing offer leverage, hostile salary negotiation, discreet poaching response,
+  and a full crisis cascade with 3 simultaneous stakeholders.
+  Features 5 independent, objective reward signals covering task completion,
+  stakeholder sentiment management, deadline discipline, information security,
+  and strategic coherence across turns.
+
+author: HemanthDas
+
+tags:
+  - openenv
+  - career
+  - negotiation
+  - multi-turn
+  - india
+  - nlp
+  - rl
+  - personal-assistant
+  - salary
+  - strategy
+
+scenarios:
+  - id: single_offer
+    name: Single Offer Negotiation
+    level: 1
+    max_turns: 6
+    description: >
+      Agent negotiates one job offer from a baseline to target salary.
+      Tests basic counter-offer strategy and professional tone.
+
+  - id: competing_offers
+    name: Competing Offers Leverage
+    level: 2
+    max_turns: 8
+    description: >
+      Agent manages two simultaneous offers, requesting extensions and
+      using one as leverage without prematurely revealing details.
+
+  - id: hostile_negotiation
+    name: Hostile Negotiation
+    level: 3
+    max_turns: 8
+    description: >
+      Hiring manager uses pressure tactics and claims final offer.
+      Agent must hold position, cite market data, and not capitulate.
+
+  - id: poaching_attempt
+    name: Poaching Attempt While Employed
+    level: 4
+    max_turns: 10
+    description: >
+      Competitor recruiter DMs agent. Agent must gather role info
+      without revealing current CTC or employer prematurely.
+
+  - id: crisis_cascade
+    name: Full Crisis Cascade
+    level: 5
+    max_turns: 12
+    description: >
+      Three simultaneous stakeholders: expiring startup offer,
+      ongoing big-corp process, and current employer counter-offer.
+      Agent must resolve all threads without contradicting itself.
+
+reward_signals:
+  - name: r1_task_completion
+    weight: 0.35
+    type: rule_based
+    description: Did agent reach the scenario's target outcome?
+
+  - name: r2_stakeholder_sentiment
+    weight: 0.20
+    type: rule_based_npc
+    description: Average NPC sentiment at episode end (state machine, not LLM)
+
+  - name: r3_deadline_management
+    weight: 0.20
+    type: rule_based
+    description: Fraction of stakeholder deadlines proactively addressed
+
+  - name: r4_information_discipline
+    weight: 0.15
+    type: regex_state
+    description: Did agent avoid leaking confidential info before threshold turns?
+
+  - name: r5_strategic_coherence
+    weight: 0.10
+    type: pattern_matching
+    description: Did agent maintain consistent position across turns?
+
+endpoints:
+  reset: POST /reset
+  step: POST /step
+  state: GET /state
+  health: GET /health
+  leaderboard: GET /leaderboard
+  history: GET /history
+
+runtime:
+  port: 7860
+  framework: fastapi
+  ui: gradio
