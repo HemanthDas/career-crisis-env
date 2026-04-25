@@ -53,7 +53,19 @@ class Stakeholder(BaseModel):
 # ─────────────────────────────────────────
 # ACTION — extends OpenEnv Action
 # ─────────────────────────────────────────
-
+class CareerScenario(BaseModel):
+    """Scenario config — defines one full episode."""
+    scenario_id: str
+    scenario_type: ScenarioType
+    level: int = Field(ge=1, le=5)
+    title: str
+    context: str
+    stakeholders: List[Stakeholder]
+    confidential_info: Dict[str, Any] = {}
+    reveal_thresholds: Dict[str, int] = {}
+    max_turns: int
+    success_criteria: str
+    target_outcome: Dict[str, Any] = {}
 class CareerAction(Action):
     """
     Agent action: a text response in the career negotiation scenario.

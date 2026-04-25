@@ -5,7 +5,22 @@ Add more by appending to SCENARIO_POOL — the env picks randomly per level.
 """
 
 from __future__ import annotations
-from env.models import CareerScenario, ScenarioType, Stakeholder, StakeholderRole
+from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Optional
+from env.models import ScenarioType, Stakeholder, StakeholderRole
+
+class CareerScenario(BaseModel):
+    scenario_id: str
+    scenario_type: ScenarioType
+    level: int = Field(ge=1, le=5)
+    title: str
+    context: str
+    stakeholders: List[Stakeholder]
+    confidential_info: Dict[str, Any] = {}
+    reveal_thresholds: Dict[str, int] = {}
+    max_turns: int
+    success_criteria: str
+    target_outcome: Dict[str, Any] = {}
 
 
 # ─────────────────────────────────────────
