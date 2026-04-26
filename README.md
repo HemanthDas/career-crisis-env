@@ -74,15 +74,15 @@ No single LLM judge. All signals are objective and hard to game independently.
 ## Training Results
 
 ### Total Reward over 300 GRPO Steps
-![Training curve](https://raw.githubusercontent.com/HemanthDas/career-crisis-env/master/assets/reward_curve_total.png)
+![Training curve](https://media.githubusercontent.com/media/HemanthDas/career-crisis-env/refs/heads/master/assets/reward_curve_total.png)
 *Trained model (green) stays consistently above baseline 0.625 (orange dashed) across all 300 steps.*
 
 ### Individual Reward Signals
-![Breakdown](https://raw.githubusercontent.com/HemanthDas/career-crisis-env/master/assets/reward_curve_breakdown.png)
+![Breakdown](https://media.githubusercontent.com/media/HemanthDas/career-crisis-env/refs/heads/master/assets/reward_curve_breakdown.png)
 *R3 Deadlines and R5 Coherence reach perfect scores early. R1 Task Completion (hardest signal) climbs from 0.05 baseline.*
 
 ### Before vs After GRPO Training
-![Before vs After](https://raw.githubusercontent.com/HemanthDas/career-crisis-env/master/assets/before_after_comparison.png)
+![Before vs After](https://media.githubusercontent.com/media/HemanthDas/career-crisis-env/refs/heads/master/assets/before_after_comparison.png)
 *R1 Task Completion: 0.05 → 0.11 (+120%). R2 Sentiment: 0.98 → 1.00. Total: 0.62 → 0.64.*
 
 ### Key Numbers
@@ -128,7 +128,7 @@ We built a full interactive interface — try it live at:
 
 **👉 https://hemanthdas-career-crisis-env.hf.space**
 
-![Demo UI](https://raw.githubusercontent.com/HemanthDas/career-crisis-env/master/assets/interface.png)
+![Demo UI](https://media.githubusercontent.com/media/HemanthDas/career-crisis-env/refs/heads/master/assets/interface.png)
 
 **Two modes:**
 
