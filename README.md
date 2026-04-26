@@ -143,7 +143,7 @@ Try the live negotiation UI at `/demo` — negotiate yourself or watch the agent
 
 - 🤗 HuggingFace Space: https://huggingface.co/spaces/HemanthDas/career-crisis-env
 - 💻 GitHub: https://github.com/HemanthDas/career-crisis-env
-- 📓 Training Notebook: [Google Colab](https://drive.google.com/file/d/1uwi0w_ZBKEnOmmsMSe4wi-y6Qg08adV5/view?usp=sharing)
+- 📓 Training Notebook: [Google Colab](https://colab.research.google.com/drive/1SmK4wFAlHZ_EOpUKmGfKGldsRe0HnZ5K)
 - 📝 Blog Post: YOUR_HF_BLOG_LINK_HERE
 
 ## Why This Matters
