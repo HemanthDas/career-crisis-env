@@ -122,6 +122,26 @@ r = requests.post("https://hemanthdas-career-crisis-env.hf.space/step",
                   json={"action": {"response": "Thank you for the offer. Based on Levels.fyi data showing ₹20 LPA median, I'd like to counter at ₹20 LPA."}})
 print(r.json()["reward"])
 ```
+## 🖥️ Interactive Demo UI
+
+We built a full interactive interface — try it live at:
+
+**👉 https://hemanthdas-career-crisis-env.hf.space**
+
+![Demo UI](https://raw.githubusercontent.com/HemanthDas/career-crisis-env/master/assets/interface.png)
+
+**Two modes:**
+
+**⚡ Auto mode** — watch the RL agent negotiate automatically in real time. Select any of the 5 scenarios, set the speed, hit Play. Watch the conversation unfold turn by turn while all 5 reward bars update live.
+
+**✍️ Human mode** — negotiate yourself. Type your own responses and see exactly how the reward signals react to your words. See if you can beat the trained agent's score.
+
+**What you can see in the UI:**
+- Live conversation thread between agent and NPC recruiter
+- 5 animated reward bars updating after every turn
+- Real-time improvement % over the untrained baseline
+- Episode history chart showing scores across multiple runs
+- All 5 scenario levels selectable with one click
 
 ## API Endpoints
 
